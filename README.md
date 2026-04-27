@@ -1,15 +1,15 @@
-# ⚡ Catalyst — AI-Powered Skill Assessment & Personalised Learning Plan Agent
+# SkillMind — AI-Powered Skill Assessment & Personalised Learning Plan Agent
 
-> Submitted for the **Deccan AI Catalyst Hackathon** by **Sai Krishna Kodam**
+> Submitted for the **Deccan AI SkillMind Hackathon** by **Sai Krishna Kodam**
 
 
 ---
 
-## 🎯 What Is Catalyst?
+## 🎯 What Is SkillMind?
 
 A resume tells you what someone *claims* to know — not how well they actually know it.
 
-**Catalyst** is an AI agent that takes a **Job Description** and a **Candidate Resume**, assesses real proficiency on each required skill, identifies gaps, and generates a **personalised learning plan** focused on adjacent skills the candidate can realistically acquire — with curated resources and time estimates.
+**SkillMind** is an AI agent that takes a **Job Description** and a **Candidate Resume**, assesses real proficiency on each required skill, identifies gaps, and generates a **personalised learning plan** focused on adjacent skills the candidate can realistically acquire — with curated resources and time estimates.
 
 ---
 
@@ -31,7 +31,7 @@ A resume tells you what someone *claims* to know — not how well they actually 
 ```
 Job Description  +  Resume (PDF/DOCX/text)
                  ↓
-         ⚡ Catalyst Agent
+         ⚡ SkillMind Agent
                  ↓
   ✅ Match Score: 62%
   🔴 Critical Gaps: Kubernetes, System Design, Redis
@@ -96,8 +96,8 @@ Match Score = average(100 - gap × 10) across all required skills
 
 ```bash
 # 1. Clone
-git clone https://github.com/YOUR_USERNAME/catalyst.git
-cd catalyst
+git clone https://github.com/YOUR_USERNAME/SkillMind.git
+cd SkillMind
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -152,7 +152,7 @@ The app automatically uses **Groq if the key is set**, otherwise falls back to *
 ## 📁 Project Structure
 
 ```
-catalyst/
+SkillMind/
 ├── app.py                  # FastAPI backend + AI agent (single file)
 ├── requirements.txt        # Python dependencies
 ├── Procfile                # Render / Railway deploy config
@@ -239,4 +239,4 @@ Pull requests are welcome. For major changes, open an issue first to discuss.
 
 **Sai Krishna Kodam**
 - GitHub: [@saikrishnakodam](https://github.com/saikrishnakodam)
-- Hackathon: [Deccan AI Catalyst](https://github.com/hackathon-deccan-ai)
+- Hackathon: [Deccan AI SkillMind](https://github.com/hackathon-deccan-ai)
