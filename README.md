@@ -1,4 +1,9 @@
 
+## 🌐 Live Demo
+
+https://skillmind-1.onrender.com
+
+
 ## 🎥 Demo Video
 
 https://drive.google.com/file/d/1F6FJCrYjFKNlKI1lk9PazDQKcah6OWHW/view?usp=sharing
