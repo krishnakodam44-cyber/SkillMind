@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillMind — AI Skill Assessment Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a25;
+    --border: #2a2a3a;
+    --accent: #7c6df0;
+    --accent2: #e066b0;
+    --accent3: #40e0c8;
+    --text: #e8e8f0;
+    --text2: #8888aa;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --grad: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124, 109, 240, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124, 109, 240, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124,109,240,0.08) 0%, transparent 70%);
+    top: -200px; right: -200px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb2 {
+    position: fixed;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(224,102,176,0.06) 0%, transparent 70%);
+    bottom: -100px; left: -100px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative; z-index: 10;
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    backdrop-filter: blur(10px);
+    background: rgba(10,10,15,0.8);
+    position: sticky; top: 0;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { font-weight: 400; opacity: 0.7; font-size: 12px; display: block; margin-top: -4px; }
+
+  .model-select {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .model-select label { font-size: 12px; color: var(--text2); font-family: 'DM Mono', monospace; }
+
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+  }
+
+  select:focus { outline: none; border-color: var(--accent); }
+
+  main {
+    position: relative; z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  h1.hero {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+
+  h1.hero span {
+    background: var(--grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-sub {
+    color: var(--text2);
+    font-size: 16px;
+    max-width: 540px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }
+
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 768px) { .input-grid { grid-template-columns: 1fr; } }
+
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .input-card:focus-within { border-color: var(--accent); }
+
+  .input-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2);
+  }
+
+  .input-card-header .icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .icon-jd { background: rgba(124,109,240,0.2); }
+  .icon-cv { background: rgba(64,224,200,0.2); }
+
+  .input-card-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    padding: 16px 18px;
+    resize: vertical;
+  }
+
+  textarea:focus { outline: none; }
+  textarea::placeholder { color: var(--text2); opacity: 0.5; }
+
+  .btn-primary {
+    width: 100%;
+    padding: 18px;
+    background: var(--grad);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* Progress steps */
+  #progress-section {
+    margin: 32px 0;
+    display: none;
+  }
+
+  .steps {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  .step-badge {
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    display: flex; align-items: center; gap: 8px;
+    transition: all 0.3s;
+  }
+
+  .step-badge.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,109,240,0.1);
+  }
+
+  .step-badge.done {
+    border-color: var(--success);
+    color: var(--success);
+    background: rgba(52,211,153,0.1);
+  }
+
+  .step-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .step-badge.active .dot {
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Results */
+  #results-section { display: none; margin-top: 40px; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Score card */
+  .score-grid {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 768px) { .score-grid { grid-template-columns: 1fr 1fr; } }
+
+  .score-main {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    min-width: 140px;
+  }
+
+  .score-ring {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent) var(--pct), var(--border) 0);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .score-ring::after {
+    content: '';
+    position: absolute;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--surface);
+  }
+
+  .score-number {
+    position: absolute; z-index: 1;
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 800;
+  }
+
+  .score-label { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .info-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 12px;
+  }
+
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .tag {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .tag-strength { background: rgba(52,211,153,0.15); color: var(--success); border: 1px solid rgba(52,211,153,0.3); }
+  .tag-gap { background: rgba(248,113,113,0.15); color: var(--danger); border: 1px solid rgba(248,113,113,0.3); }
+
+  /* Skills table */
+  .skills-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+
+  .skill-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 180px 1fr 100px 80px 80px;
+    align-items: center;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .skill-row:hover { border-color: rgba(124,109,240,0.4); }
+
+  .skill-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; font-weight: 500;
+  }
+
+  .skill-bar-wrap {
+    background: var(--surface2);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .skill-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .gap-none .skill-bar { background: var(--success); }
+  .gap-low .skill-bar { background: var(--warning); }
+  .gap-high .skill-bar { background: var(--danger); }
+
+  .level-badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+    background: var(--surface2);
+    color: var(--text2);
+    white-space: nowrap;
+  }
+
+  .priority-badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+  }
+
+  .priority-high { background: rgba(248,113,113,0.15); color: var(--danger); }
+  .priority-medium { background: rgba(251,191,36,0.15); color: var(--warning); }
+  .priority-low { background: rgba(52,211,153,0.15); color: var(--success); }
+
+  /* Learning plan */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+
+  .milestone {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 20px;
+    position: relative;
+  }
+
+  .milestone:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 39px; top: 36px;
+    width: 2px;
+    bottom: 0;
+    background: var(--border);
+  }
+
+  .milestone-week {
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 8px;
+  }
+
+  .week-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--accent);
+    flex-shrink: 0;
+    margin-bottom: 6px;
+  }
+
+  .week-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+    text-align: center;
+  }
+
+  .milestone-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  .milestone-goal {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .milestone-deliverable {
+    font-size: 12px;
+    color: var(--accent3);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    background: rgba(64,224,200,0.08);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent3);
+  }
+
+  .resources { display: flex; flex-direction: column; gap: 8px; }
+
+  .resource {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .resource-type-icon {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+
+  .type-course { background: rgba(124,109,240,0.2); }
+  .type-book { background: rgba(251,191,36,0.2); }
+  .type-project { background: rgba(52,211,153,0.2); }
+  .type-tutorial { background: rgba(64,224,200,0.2); }
+  .type-community { background: rgba(224,102,176,0.2); }
+
+  .resource-info { flex: 1; min-width: 0; }
+
+  .resource-title {
+    font-size: 13px; font-weight: 500;
+    margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .resource-title a { color: var(--text); text-decoration: none; }
+  .resource-title a:hover { color: var(--accent); }
+
+  .resource-meta {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    font-size: 10px; color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .free-badge {
+    background: rgba(52,211,153,0.15);
+    color: var(--success);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Streaming plan */
+  #plan-stream {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text2);
+    white-space: pre-wrap;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    margin-bottom: 24px;
+  }
+
+  /* Chat section */
+  #chat-section {
+    margin-top: 40px;
+    display: none;
+  }
+
+  .chat-window {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .chat-messages {
+    height: 320px;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .msg {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .msg-user {
+    align-self: flex-end;
+    background: rgba(124,109,240,0.2);
+    border: 1px solid rgba(124,109,240,0.3);
+    color: var(--text);
+  }
+
+  .msg-agent {
+    align-self: flex-start;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .msg-agent strong {
+    color: var(--accent);
+    font-size: 11px;
+    display: block;
+    margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .chat-input-row {
+    display: flex; gap: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .chat-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 16px 20px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .chat-input:focus { outline: none; }
+  .chat-input::placeholder { color: var(--text2); }
+
+  .chat-send {
+    padding: 12px 20px;
+    background: var(--accent);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    transition: opacity 0.2s;
+  }
+
+  .chat-send:hover { opacity: 0.85; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Utils */
+  .hidden { display: none !important; }
+  .spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Sample data button */
+  .sample-btn {
+    font-size: 11px;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .sample-btn:hover { color: var(--accent2); }
+
+  @media (max-width: 600px) {
+    main { padding: 20px; }
+    header { padding: 16px 20px; }
+    .skill-row { grid-template-columns: 1fr 1fr; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="orb2"></div>
+
+<header>
+  <div class="logo">
+    👾 SkillMind
+    <span>AI Skill Assessment Agent</span>
+  </div>
+  <div class="model-select">
+    <label>MODEL</label>
+    <select id="model-select">
+      <option value="tinyllama" selected>tinyllama</option>
+      <option value="llama3.2">llama3.2</option>
+      <option value="llama3.1">llama3.1</option>
+      <option value="mistral">mistral</option>
+      <option value="phi3">phi3</option>
+      <option value="gemma2">gemma2</option>
+    </select>
+  </div>
+</header>
+
+<main>
+  <h1 class="hero">
+    Assess skills.<br>
+    <span>Bridge gaps.</span>
+  </h1>
+  <p class="hero-sub">
+    Paste a job description and resume. The agent will assess real proficiency on each required skill, identify gaps, and generate a personalised learning plan.
+  </p>
+
+  <div class="input-grid">
+    <div class="input-card">
+      <div class="input-card-header">
+        <div class="icon icon-jd">📋</div>
+        <h3>Job Description</h3>
+        <button class="sample-btn" onclick="loadSampleJD()" style="margin-left:auto">Load sample</button>
+      </div>
+      <textarea id="jd-input" placeholder="Paste the job description here...&#10;&#10;Include: role title, required skills, responsibilities, and any tech stack mentioned."></textarea>
+    </div>
+    <div class="input-card">
+      <div class="input-card-header">
+        <div class="icon icon-cv">👤</div>
+        <h3>Candidate Resume</h3>
+        <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
+          <label class="sample-btn" style="cursor:pointer;" title="Upload PDF or DOCX">
+            📎 Upload PDF/DOCX
+            <input type="file" id="resume-file" accept=".pdf,.docx,.txt" style="display:none" onchange="uploadResume(this)">
+          </label>
+          <button class="sample-btn" onclick="loadSampleResume()">Load sample</button>
+        </div>
+      </div>
+      <div id="upload-status" style="display:none;padding:6px 18px;font-size:11px;font-family:'DM Mono',monospace;color:var(--accent3);background:rgba(64,224,200,0.08);border-bottom:1px solid var(--border);">
+        ✓ <span id="upload-filename"></span> — extracted successfully
+      </div>
+      <textarea id="resume-input" placeholder="Paste your resume here, or upload a PDF/DOCX above...&#10;&#10;Include: experience, skills, projects, education, and certifications."></textarea>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="assess-btn" onclick="startAssessment()">
+    ⚡ Run Skill Assessment
+  </button>
+
+  <!-- Progress -->
+  <div id="progress-section">
+    <div class="steps" style="margin-top:24px">
+      <div class="step-badge" id="step-1"><div class="dot"></div> Extract Skills</div>
+      <div class="step-badge" id="step-2"><div class="dot"></div> Parse Resume</div>
+      <div class="step-badge" id="step-3"><div class="dot"></div> Assess Gaps</div>
+      <div class="step-badge" id="step-4"><div class="dot"></div> Learning Plan</div>
+    </div>
+    <div id="progress-msg" style="margin-top:12px;font-size:13px;color:var(--text2);font-family:'DM Mono',monospace"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section">
+
+    <div class="section-title">Assessment Results</div>
+
+    <!-- Score + info -->
+    <div class="score-grid" id="score-grid"></div>
+
+    <!-- Skills breakdown -->
+    <div class="section-title">Skill Gap Analysis</div>
+    <div class="skills-grid" id="skills-grid"></div>
+
+    <!-- Streaming plan -->
+    <div class="section-title">Generating Learning Plan</div>
+    <div id="plan-stream"></div>
+
+    <!-- Final learning plan -->
+    <div id="learning-plan-section" style="display:none">
+      <div class="section-title">Personalised Learning Plan</div>
+      <div class="timeline" id="learning-plan"></div>
+    </div>
+
+  </div>
+
+  <!-- Chat section -->
+  <div id="chat-section">
+    <div class="section-title">Ask SkillMind</div>
+    <div class="chat-window">
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg msg-agent">
+          <strong>SkillMind</strong>
+          Assessment complete! Ask me anything about the results, specific skills, or how to approach the learning plan.
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" class="chat-input" id="chat-input"
+          placeholder="Ask about specific skills, resources, or next steps..."
+          onkeydown="if(event.key==='Enter') sendChat()">
+        <button class="chat-send" onclick="sendChat()">Send →</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const SESSION_ID = 'sess_' + Math.random().toString(36).slice(2);
+let currentModel = 'tinyllama';
+
+// Load available models
+fetch('/api/models').then(r => r.json()).then(data => {
+  const sel = document.getElementById('model-select');
+  if (data.models && data.models.length > 0) {
+    sel.innerHTML = data.models.map(m => `<option value="${m}">${m}</option>`).join('');
+  }
+});
+
+document.getElementById('model-select').onchange = e => { currentModel = e.target.value; };
+
+// ── Assessment ────────────────────────────────────────────────────────────────
+
+async function startAssessment() {
+  const jd = document.getElementById('jd-input').value.trim();
+  const resume = document.getElementById('resume-input').value.trim();
+
+  if (!jd || !resume) { alert('Please provide both job description and resume.'); return; }
+
+  const btn = document.getElementById('assess-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner">◌</span> Assessing...';
+
+  // Show progress
+  document.getElementById('progress-section').style.display = 'block';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('chat-section').style.display = 'none';
+  document.getElementById('plan-stream').style.display = 'none';
+  document.getElementById('plan-stream').textContent = '';
+  document.getElementById('learning-plan-section').style.display = 'none';
+
+  setStep(1, 'active');
+
+  const response = await fetch('/api/assess', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ job_description: jd, resume, model: currentModel })
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const event = JSON.parse(line.slice(6));
+        handleEvent(event);
+      } catch {}
+    }
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '⚡ Run New Assessment';
+}
+
+function handleEvent(event) {
+  switch (event.type) {
+    case 'progress':
+      setStep(event.step, 'active');
+      document.getElementById('progress-msg').textContent = event.message;
+      break;
+
+    case 'skills_extracted':
+      setStep(1, 'done');
+      document.getElementById('results-section').style.display = 'block';
+      break;
+
+    case 'resume_parsed':
+      setStep(2, 'done');
+      break;
+
+    case 'assessment_complete':
+      setStep(3, 'done');
+      renderScoreCard(event);
+      renderSkillsGrid(event.assessments);
+      break;
+
+    case 'plan_token':
+      const stream = document.getElementById('plan-stream');
+      stream.style.display = 'block';
+      stream.textContent += event.token;
+      stream.scrollTop = stream.scrollHeight;
+      break;
+
+    case 'final_result':
+      setStep(4, 'done');
+      document.getElementById('plan-stream').style.display = 'none';
+      renderLearningPlan(event.result.learning_plan);
+      document.getElementById('chat-section').style.display = 'block';
+      break;
+
+    case 'error':
+      document.getElementById('progress-msg').textContent = '❌ ' + event.message;
+      break;
+  }
+}
+
+function setStep(n, status) {
+  const el = document.getElementById('step-' + n);
+  if (!el) return;
+  el.className = 'step-badge ' + status;
+  // Also set previous steps to done
+  if (status === 'active') {
+    for (let i = 1; i < n; i++) {
+      const prev = document.getElementById('step-' + i);
+      if (prev && prev.className.includes('active')) prev.className = 'step-badge done';
+    }
+  }
+}
+
+// ── Render: Score Card ────────────────────────────────────────────────────────
+
+function renderScoreCard(data) {
+  const score = data.overall_match_score;
+  const pct = Math.round(score / 100 * 360);
+  const grid = document.getElementById('score-grid');
+
+  grid.innerHTML = `
+    <div class="score-main">
+      <div class="score-ring" style="--pct: ${pct}deg">
+        <span class="score-number">${score}%</span>
+      </div>
+      <div class="score-label">Match Score</div>
+    </div>
+    <div class="info-card">
+      <h4>💪 Strengths</h4>
+      <div class="tag-list">
+        ${(data.strengths || []).map(s => `<span class="tag tag-strength">${s}</span>`).join('')}
+      </div>
+    </div>
+    <div class="info-card">
+      <h4>🔴 Critical Gaps</h4>
+      <div class="tag-list">
+        ${(data.critical_gaps || []).map(g => `<span class="tag tag-gap">${g}</span>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ── Render: Skills Grid ───────────────────────────────────────────────────────
+
+function renderSkillsGrid(assessments) {
+  const grid = document.getElementById('skills-grid');
+  if (!assessments || !assessments.length) { grid.innerHTML = '<p style="color:var(--text2)">No assessments available.</p>'; return; }
+
+  const levelMap = { none: 0, beginner: 25, intermediate: 50, advanced: 75, expert: 100 };
+  const typeIcons = { course: '🎓', book: '📚', project: '🛠', tutorial: '▶️', community: '👥' };
+
+  grid.innerHTML = assessments.map(a => {
+    const pct = levelMap[a.assessed_level] || 0;
+    const gapClass = a.gap_score <= 2 ? 'gap-none' : a.gap_score <= 5 ? 'gap-low' : 'gap-high';
+    return `
+      <div class="skill-row ${gapClass}" title="${a.evidence}">
+        <span class="skill-name">${a.skill}</span>
+        <div class="skill-bar-wrap"><div class="skill-bar" style="width:${pct}%"></div></div>
+        <span class="level-badge">${a.assessed_level || 'none'} → ${a.required_level}</span>
+        <span class="priority-badge priority-${a.priority}">${a.priority}</span>
+        <span style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace">gap:${a.gap_score}/10</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Render: Learning Plan ─────────────────────────────────────────────────────
+
+function renderLearningPlan(plan) {
+  const section = document.getElementById('learning-plan-section');
+  const container = document.getElementById('learning-plan');
+
+  if (!plan || !plan.length) { return; }
+  section.style.display = 'block';
+
+  const typeIcons = { course:'🎓', book:'📚', project:'🛠️', tutorial:'▶️', community:'👥' };
+
+  container.innerHTML = plan.map(m => `
+    <div class="milestone">
+      <div class="milestone-week">
+        <div class="week-dot"></div>
+        <div class="week-label">Week<br>${m.week}</div>
+      </div>
+      <div class="milestone-content">
+        <div class="milestone-goal">${m.goal}</div>
+        ${m.deliverable ? `<div class="milestone-deliverable">🎯 ${m.deliverable}</div>` : ''}
+        <div class="resources">
+          ${(m.resources || []).map(r => `
+            <div class="resource">
+              <div class="resource-type-icon type-${r.type}">${typeIcons[r.type] || '📌'}</div>
+              <div class="resource-info">
+                <div class="resource-title">
+                  <a href="${r.url}" target="_blank" rel="noopener">${r.title}</a>
+                </div>
+                <div class="resource-meta">
+                  <span>${r.duration}</span>
+                  <span>·</span>
+                  <span>${r.level}</span>
+                  ${r.free ? '<span class="free-badge">FREE</span>' : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const messages = document.getElementById('chat-messages');
+  messages.innerHTML += `<div class="msg msg-user">${msg}</div>`;
+  input.value = '';
+
+  const agentMsg = document.createElement('div');
+  agentMsg.className = 'msg msg-agent';
+  agentMsg.innerHTML = '<strong>SkillMind</strong>';
+  messages.appendChild(agentMsg);
+  messages.scrollTop = messages.scrollHeight;
+
+  const response = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ session_id: SESSION_ID, message: msg, model: currentModel })
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let text = '';
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value);
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const event = JSON.parse(line.slice(6));
+        if (event.type === 'token') {
+          text += event.token;
+          agentMsg.innerHTML = '<strong>SkillMind</strong>' + text;
+          messages.scrollTop = messages.scrollHeight;
+        }
+      } catch {}
+    }
+  }
+}
+
+// ── Sample Data ───────────────────────────────────────────────────────────────
+
+function loadSampleJD() {
+  document.getElementById('jd-input').value = `Senior Full Stack Engineer — FinTech Startup
+
+We're building the next generation of payments infrastructure. You'll architect and ship features used by millions.
+
+Required Skills:
+• Python (advanced) — FastAPI, async programming, microservices
+• React / TypeScript (advanced) — component design, state management (Redux/Zustand)
+• PostgreSQL (intermediate) — query optimisation, migrations, indexing
+• AWS (intermediate) — Lambda, RDS, S3, CloudWatch
+• Docker & Kubernetes (intermediate) — containerisation, orchestration
+• System Design (advanced) — distributed systems, event-driven architecture
+• REST & GraphQL API design
+• Redis (intermediate) — caching, pub/sub
+• Git, CI/CD pipelines
+• Communication skills — ability to lead technical discussions`;
+}
+
+async function uploadResume(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const status = document.getElementById('upload-status');
+  const filenameEl = document.getElementById('upload-filename');
+  const textarea = document.getElementById('resume-input');
+
+  filenameEl.textContent = file.name + ' — uploading...';
+  status.style.display = 'block';
+  textarea.placeholder = 'Extracting text from ' + file.name + '...';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const resp = await fetch('/api/parse-resume', { method: 'POST', body: formData });
+    const data = await resp.json();
+
+    if (data.error) {
+      filenameEl.textContent = '❌ ' + data.error;
+      status.style.color = 'var(--danger)';
+    } else {
+      textarea.value = data.text;
+      filenameEl.textContent = file.name + ' (' + data.chars + ' chars extracted)';
+      status.style.color = 'var(--accent3)';
+    }
+  } catch (e) {
+    filenameEl.textContent = '❌ Upload failed: ' + e.message;
+    status.style.color = 'var(--danger)';
+  }
+  textarea.placeholder = '';
+}
+
+function loadSampleResume() {
+  document.getElementById('resume-input').value = `Priya Sharma — Software Engineer
+priya.sharma@email.com | github.com/priya-dev | Bangalore, India
+
+EXPERIENCE
+Junior Software Engineer — TechCorp (2022–2024)
+• Built REST APIs using Python/Flask serving 50K daily users
+• Developed React dashboards for internal analytics tools
+• Worked with MySQL databases; wrote complex JOINs and stored procedures
+• Deployed applications on AWS EC2 and used S3 for file storage
+• Used Docker for local development
+
+Intern — StartupXYZ (2021–2022)
+• Built features in a Django monolith
+• Created basic React components (class-based)
+• Wrote unit tests with pytest
+
+EDUCATION
+B.Tech Computer Science — VIT University (2018–2022) | CGPA: 8.4
+
+SKILLS
+Python (Flask, Django), JavaScript, React (hooks), MySQL, PostgreSQL (basic), 
+AWS (EC2, S3), Docker, Git
+
+PROJECTS
+• Personal Finance Tracker — React + FastAPI + PostgreSQL app (hobby project)
+• Open source: contributed 3 PRs to a Django library
+
+CERTIFICATIONS
+• AWS Cloud Practitioner (2023)`;
+}
+</script>
+</body>
+</html>
