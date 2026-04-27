@@ -1,3 +1,8 @@
+
+## 🎥 Demo Video
+
+[▶️ Watch Demo Video]([https://drive.google.com/your-video-link-here](https://drive.google.com/file/d/1F6FJCrYjFKNlKI1lk9PazDQKcah6OWHW/view?usp=sharing))
+
 # SkillMind — AI-Powered Skill Assessment & Personalised Learning Plan Agent
 
 > Submitted for the **Deccan AI SkillMind Hackathon** by **Sai Krishna Kodam**
